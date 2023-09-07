@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/collect"
-            android:text="收藏">
+            android:text="我的收藏">
 
         </Button>
         <Button
@@ -36,18 +36,25 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/myphoto"
-            android:text="我的">
+            android:text="我的发布">
 
         </Button>
         <Button
             android:id="@+id/main_update"
-            android:text="刷新"
+            android:text="刷新页面"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
         </Button>
     </LinearLayout>
+    <Button
+        android:text="发布新图片！"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/upload_new_photos">
+
+    </Button>
 
     <ListView
         android:id="@+id/list"

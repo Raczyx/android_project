@@ -7,20 +7,22 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.guet.photo_sharing.activity.ImagesShowActivity;
 import com.guet.photo_sharing.activity.LoginActivity;
-import com.guet.photo_sharing.activity.LogupActivity;
 import com.guet.photo_sharing.activity.MyCollectActivity;
 import com.guet.photo_sharing.activity.MyphotoActivity;
+import com.guet.photo_sharing.activity.UploadActivity;
 import com.guet.photo_sharing.activity.UserActivity;
+import com.guet.photo_sharing.adapter.PhotoAdapter;
 import com.guet.photo_sharing.entity.Photogroup;
 import com.guet.photo_sharing.entity.ResponseBody;
-import com.guet.photo_sharing.entity.User;
 import com.guet.photo_sharing.utils.HttpUtil;
 
 import java.io.IOException;
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btCollect;
     private Button btMyPhoto;
     private Button btUpdate;
+
+    private Button btUpload;
 
     private static int num = 1;
     HttpUtil httpUtil;
@@ -66,6 +70,22 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        lvNewsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Photogroup photogroup = photogroupList.get(i);
+                Intent intent = new Intent(MainActivity.this, ImagesShowActivity.class);
+                intent.putExtra("email",email);
+                intent.putExtra("jwt",jwt);
+                intent.putExtra("type",0);
+                intent.putExtra("uemail",photogroup.getEmail());
+                intent.putExtra("id",photogroup.getId());
+                intent.putExtra("cover",photogroup.getCover());
+                intent.putExtra("username",photogroup.getUsername());
+                startActivity(intent);
+            }
+        });
+
     }
     private void initView() {
         btUpdate = findViewById(R.id.main_update);
@@ -76,6 +96,22 @@ public class MainActivity extends AppCompatActivity {
         btUser = findViewById(R.id.user_data);
         btCollect = findViewById(R.id.collect);
         btMyPhoto = findViewById(R.id.myphoto);
+        btUpload = findViewById(R.id.upload_new_photos);
+
+        if (email==null||jwt==null){
+            btUpload.setVisibility(View.GONE);
+        }
+
+        btUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, UploadActivity.class);
+                intent.putExtra("email",email);
+                intent.putExtra("jwt",jwt);
+                startActivity(intent);
+            }
+        });
+
         btUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -159,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                             adapter.notifyDataSetChanged();
-
+                            Toast.makeText(MainActivity.this, "刷新完成", Toast.LENGTH_SHORT).show();
                         }else {
                             Toast.makeText(MainActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
                         }
@@ -168,4 +204,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = getIntent();
+        email = intent.getStringExtra("email");
+        jwt = intent.getStringExtra("jwt");
+        if (email==null||jwt==null){
+            SharedPreferences data = getSharedPreferences("data", MODE_PRIVATE);
+            email = data.getString("email", null);
+            jwt = data.getString("jwt", null);
+        }
+        if (email==null||jwt==null){
+            btUpload.setVisibility(View.GONE);
+        }else {
+            btUpload.setVisibility(View.VISIBLE);
+        }
+        httpUtil.getList(num,50,callback);
+    }
 }

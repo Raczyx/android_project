@@ -236,4 +236,80 @@ public class UserActivity extends AppCompatActivity {
 //        Log.d("Email",email);
 //        Log.d("Jwt",jwt);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Intent intent = getIntent();
+        if (intent == null){
+            Log.d("intent","null");
+        }
+        email = intent.getStringExtra("email");
+
+        jwt = intent.getStringExtra("jwt");
+
+//        email = "666";
+//        jwt = "jwt";
+
+
+
+        if (email == null|| jwt == null){
+            SharedPreferences data = getSharedPreferences("data", MODE_PRIVATE);
+            email = data.getString("email", null);
+            jwt = data.getString("jwt",null);
+            if (email == null|| jwt == null){
+                textUsername.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(UserActivity.this,LoginActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                textUsername.setText("请先登录");
+                return;
+            }
+        }
+        HttpUtil httpUtil = new HttpUtil();
+        httpUtil.getUserData(email, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(UserActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()){
+                    final String s = response.body().string();
+                    Gson gson = new Gson();
+                    Type jsonType =
+                            new TypeToken<ResponseBody<User>>(){}.getType();
+                    ResponseBody responseBody = gson.fromJson(s, jsonType);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (responseBody.isSuccessful()){
+                                User user = (User) responseBody.getData();
+
+                                textUsername.setText(user.getUsername());
+                                textEmail.setText(user.getEmail());
+                                textCreateTime.setText(user.getCreatetime());
+                                Glide.with(UserActivity.this).load(user.getImage()).into(userCover);
+
+                            }else {
+                                Toast.makeText(UserActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+                }
+            }
+        });
+    }
 }

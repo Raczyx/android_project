@@ -47,6 +47,13 @@
         </CheckBox>
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/show_description">
+
+    </TextView>
+
     <ListView
         android:id="@+id/show_list"
         android:layout_width="match_parent"

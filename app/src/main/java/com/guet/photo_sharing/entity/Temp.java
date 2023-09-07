@@ -3,15 +3,15 @@ package com.guet.photo_sharing.entity;
 import java.util.List;
 
 public class Temp{
-    boolean isCollect;
+    boolean collect;
     List<String> url;
 
     public boolean isCollect() {
-        return isCollect;
+        return collect;
     }
 
     public void setCollect(boolean collect) {
-        isCollect = collect;
+        collect = collect;
     }
 
     public List<String> getUrl() {
@@ -20,5 +20,13 @@ public class Temp{
 
     public void setUrl(List<String> url) {
         this.url = url;
+    }
+
+    @Override
+    public String toString() {
+        return "Temp{" +
+                "isCollect=" + collect +
+                ", url=" + url +
+                '}';
     }
 }
