@@ -19,6 +19,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -76,7 +77,7 @@ public class UploadActivity extends AppCompatActivity {
         gson = new Gson();
         images_paths = new ArrayList<>();
         adapter = new ImagesTempAdapter(this,R.layout.images_show,images_paths);
-//        listView.setAdapter(adapter);
+        listView.setAdapter(adapter);
 
 
         Intent intent = getIntent();
@@ -100,15 +101,34 @@ public class UploadActivity extends AppCompatActivity {
             }
         });
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                images_paths.remove(i);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
 
 
     }
 
+    /**
+     * 打开图片选择器
+     */
     private void openAlbum() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        intent.setType("image/*");
+//        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许选择多张照片
+//        startActivityForResult(intent, CHOOSE_PHOTO); // 打开相册
+
+
+        final int maxNumPhotosAndVideos = 10;
+        Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
         intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许选择多张照片
-        startActivityForResult(intent, CHOOSE_PHOTO); // 打开相册
+        intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, maxNumPhotosAndVideos);
+        startActivityForResult(intent, CHOOSE_PHOTO);
+
     }
 
     private void breakMain(){
@@ -174,22 +194,25 @@ public class UploadActivity extends AppCompatActivity {
     }
 ///sdcard
 
+    //读取路径
     private void handleImages(Intent data){
         ClipData clipData = data.getClipData();
         if (clipData==null){
-//            handleImageOnKitKat(data);
-//            String realPathFromUri = data.getData().getPath();
 
-//            String realPathFromUri = getRealPathFromUri(this, data.getData());
+
+
+//            String realPathFromUri = getRealPathFromURI(data.getData());
             String realPathFromUri = getImagePath(data.getData(),null);
             images_paths.add(realPathFromUri);
-
+//            Log.d("Upload_imageA",getRealPathFromURI(data.getData()));
+            Log.d("Upload_imageB",realPathFromUri);
         }else {
             for (int i = 0; i < clipData.getItemCount(); i++) {
                 Uri uri = clipData.getItemAt(i).getUri();
-//                String realPathFromUri = getRealPathFromUri(this, uri);
-//                String realPathFromUri = uri.getPath();
+//                Log.d("Upload_imageA",getRealPathFromURI(uri));
+//                String realPathFromUri = getRealPathFromURI(uri);
                 String realPathFromUri = getImagePath(uri,null);
+                Log.d("Upload_imageB",realPathFromUri);
                 images_paths.add(realPathFromUri);
             }
         }
@@ -203,27 +226,38 @@ public class UploadActivity extends AppCompatActivity {
 //        adapter.notifyDataSetChanged();
 //        adapter.clear();
 //        adapter.addAll(images_paths);
-//        adapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
     }
 
 
+    public String getRealPathFromURI(Uri uri) {
+        String filePath = "";
+        String wholeID = DocumentsContract.getDocumentId(uri);
 
+        // Split at colon, use second item in the array
+        String[] splits = wholeID.split(":");
+        String id = splits[1];
 
-    public static String getRealPathFromUri(Context context, Uri uri) {
-        String imagePath = null;
-        String[] projection = {MediaStore.Images.Media.DATA};
+        String[] column = {MediaStore.Images.Media.DATA};
 
-        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
-        if (cursor != null) {
-            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            if (cursor.moveToFirst()) {
-                imagePath = cursor.getString(columnIndex);
-            }
-            cursor.close();
+        // where id is equal to
+        String sel = MediaStore.Images.Media._ID + "=?";
+
+        Cursor cursor = getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                column, sel, new String[]{id}, null);
+
+        int columnIndex = cursor.getColumnIndex(column[0]);
+
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(columnIndex);
         }
-
-        return imagePath;
+        cursor.close();
+        return filePath;
     }
+
+
+
 //
     private void handleImageOnKitKat(Intent data) {
         String imagePath = null;
@@ -269,6 +303,10 @@ public class UploadActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 判断是否有空值
+     * @return
+     */
     private boolean isInputNull(){
         if (images_paths.size() == 0){
             Toast.makeText(this, "请选择图片", Toast.LENGTH_SHORT).show();
@@ -284,6 +322,9 @@ public class UploadActivity extends AppCompatActivity {
 //        return uri.getPath();
 //    }
 
+    /**
+     * 发送请求的回调
+     */
      Callback callback = new Callback() {
         @Override
         public void onFailure(Call call, IOException e) {
@@ -306,10 +347,11 @@ public class UploadActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             Toast.makeText(UploadActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(UploadActivity.this, MainActivity.class);
-                            intent.putExtra("email",email);
-                            intent.putExtra("jwt",jwt);
-                            startActivity(intent);
+//                            Intent intent = new Intent(UploadActivity.this, MainActivity.class);
+//                            intent.putExtra("email",email);
+//                            intent.putExtra("jwt",jwt);
+//                            startActivity(intent);
+                            breakMain();
                         }
                     });
                 }

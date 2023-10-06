@@ -75,16 +75,19 @@ public class ImagesShowActivity extends AppCompatActivity {
         photogroup.setUsername(intent.getStringExtra("username"));
         int pid = intent.getIntExtra("id",0);
         int type = intent.getIntExtra("type",0);
-        if (email==null){
-            btDelete.setVisibility(View.INVISIBLE);
-            isCollect.setVisibility(View.INVISIBLE);
-        }
-        String cover = intent.getStringExtra("cover");
-        Glide.with(this).load(cover).into(userCover);
-
         textDescription.setText(photogroup.getDescription());
         userName.setText(photogroup.getUsername());
         httpUtil = new HttpUtil();
+        String cover = intent.getStringExtra("cover");
+        Glide.with(this).load(cover).into(userCover);
+        if (email==null){
+            btDelete.setVisibility(View.INVISIBLE);
+            isCollect.setVisibility(View.INVISIBLE);
+            email = "";
+        }
+
+
+
         httpUtil.getImages(email, pid, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -130,6 +133,7 @@ public class ImagesShowActivity extends AppCompatActivity {
         }
 
 
+
         btDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,7 +173,9 @@ public class ImagesShowActivity extends AppCompatActivity {
                                         intent = new Intent(ImagesShowActivity.this, MainActivity.class);
                                     }
                                 }
-
+                                if (email.equals("")){
+                                    email = null;
+                                }
                                 intent.putExtra("email",email);
                                 intent.putExtra("jwt",jwt);
                                 startActivity(intent);
