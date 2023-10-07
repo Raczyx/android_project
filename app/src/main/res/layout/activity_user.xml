@@ -44,6 +44,14 @@
 
     </TextView>
     <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/update_user_cover"
+        android:text="点击上传头像"
+        tools:ignore="InvalidId">
+
+    </Button>
+    <Button
         android:id="@+id/logout"
         android:text="Loguot"
         android:layout_width="match_parent"

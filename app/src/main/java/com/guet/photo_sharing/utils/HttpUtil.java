@@ -208,4 +208,19 @@ public class HttpUtil {
                 .build();
         sentHttp(requestBody,"/user/data",callback);
     }
+
+//    public void updateCover(String email,String file,Callback callback){
+//        MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+//        builder.addFormDataPart("email",email);
+//
+//            File f = new File(file);
+//            builder.addFormDataPart(
+//                    "file",
+//                    f.getName(),
+//                    MultipartBody.create(MediaType.parse("multipart/form-data"), f)
+//            );
+//
+//        RequestBody build = builder.build();
+//        sentHttp(build,"/upload",callback);
+//    }
 }

@@ -1,10 +1,23 @@
 package com.guet.photo_sharing.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
+import static android.widget.Toast.LENGTH_SHORT;
+import static com.guet.photo_sharing.activity.UploadActivity.CHOOSE_PHOTO;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -44,6 +57,7 @@ public class UserActivity extends AppCompatActivity {
 
     private  Button btEnsure;
     private Button btGiveUp;
+    private Button btUpdateCover;
 
     String email;
 
@@ -59,6 +73,7 @@ public class UserActivity extends AppCompatActivity {
         etNewPassword = findViewById(R.id.new_password);
         btEnsure = findViewById(R.id.ensure_update_password);
         btGiveUp = findViewById(R.id.give_up_update);
+        btUpdateCover = findViewById(R.id.update_user_cover);
     }
 
     @Override
@@ -97,6 +112,23 @@ public class UserActivity extends AppCompatActivity {
         }
 
         HttpUtil httpUtil = new HttpUtil();
+
+
+        btUpdateCover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(UserActivity.this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.
+                        PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(UserActivity.this, new
+                            String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE ,
+                            Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                } else {
+                    openAlbum();
+                }
+            }
+        });
+
 
         btLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,7 +174,7 @@ public class UserActivity extends AppCompatActivity {
                     String oldPassword = String.valueOf(etOldPassword.getText());
                     String newPassword = String.valueOf(etNewPassword.getText());
                     if (oldPassword.equals("")||newPassword.equals("")){
-                        Toast.makeText(UserActivity.this,"密码不能为空",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UserActivity.this,"密码不能为空", LENGTH_SHORT).show();
                         return;
                     }
                     httpUtil.updatePassword(email, oldPassword, newPassword, new Callback() {
@@ -151,7 +183,7 @@ public class UserActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(UserActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(UserActivity.this,e.getMessage(), LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -166,7 +198,7 @@ public class UserActivity extends AppCompatActivity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(UserActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(UserActivity.this,responseBody.getMsg(), LENGTH_SHORT).show();
                                             etNewPassword.setText("");
                                             etOldPassword.setText("");
                                             etOldPassword.setVisibility(View.INVISIBLE);
@@ -180,7 +212,7 @@ public class UserActivity extends AppCompatActivity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(UserActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(UserActivity.this,responseBody.getMsg(), LENGTH_SHORT).show();
                                         }
                                     });
                                 }
@@ -197,7 +229,7 @@ public class UserActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(UserActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UserActivity.this,e.getMessage(), LENGTH_SHORT).show();
                     }
                 });
             }
@@ -223,7 +255,7 @@ public class UserActivity extends AppCompatActivity {
                                 Glide.with(UserActivity.this).load(user.getImage()).into(userCover);
 
                             }else {
-                                Toast.makeText(UserActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(UserActivity.this,responseBody.getMsg(), LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -271,13 +303,27 @@ public class UserActivity extends AppCompatActivity {
             }
         }
         HttpUtil httpUtil = new HttpUtil();
+        btUpdateCover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(UserActivity.this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.
+                        PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(UserActivity.this, new
+                            String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE ,
+                            Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                } else {
+                    openAlbum();
+                }
+            }
+        });
         httpUtil.getUserData(email, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(UserActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UserActivity.this,e.getMessage(), LENGTH_SHORT).show();
                     }
                 });
             }
@@ -303,7 +349,7 @@ public class UserActivity extends AppCompatActivity {
                                 Glide.with(UserActivity.this).load(user.getImage()).into(userCover);
 
                             }else {
-                                Toast.makeText(UserActivity.this,responseBody.getMsg(),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(UserActivity.this,responseBody.getMsg(), LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -311,5 +357,122 @@ public class UserActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
+
+
+    /**
+     * 打开图片选择器
+     */
+    private void openAlbum() {
+//        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        intent.setType("image/*");
+//        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // 允许选择多张照片
+//        startActivityForResult(intent, CHOOSE_PHOTO); // 打开相册
+
+
+        final int maxNumPhotosAndVideos = 10;
+        Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+        intent.setType("image/*");
+        intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, maxNumPhotosAndVideos);
+        startActivityForResult(intent, CHOOSE_PHOTO);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.
+                        PERMISSION_GRANTED) {
+                    openAlbum();
+                } else {
+                    Toast.makeText(this, "You denied the permission",
+                            LENGTH_SHORT).show();
+                }
+                break;
+            default:
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==CHOOSE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                handleImages(data);
+            }
+        }
+    }
+    private void handleImages(Intent data){
+        Uri uri = data.getData();
+        if (uri!=null){
+            Log.d("uri","1");
+            String imagePath = getImagePath(uri, null);
+            HttpUtil httpUtil = new HttpUtil();
+            httpUtil.updateCover(email,imagePath,callback);
+            return;
+        }
+        ClipData clipData = data.getClipData();
+        uri = clipData.getItemAt(0).getUri();
+        if (uri!=null){
+            Log.d("uri","2");
+            String imagePath = getImagePath(uri, null);
+            HttpUtil httpUtil = new HttpUtil();
+            httpUtil.updateCover(email,imagePath,callback);
+        }
+    }
+
+    @SuppressLint("Range")
+    private String getImagePath(Uri uri, String selection) {
+        String path = null;
+        // 通过Uri和selection来获取真实的图片路径
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
+    }
+
+    /**
+     * 上传头像的回调
+     */
+    Callback callback = new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(UserActivity.this,e.getMessage(), LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            if (response.isSuccessful()){
+                final String s = response.body().string();
+                Gson gson = new Gson();
+                ResponseBody responseBody = gson.fromJson(s, ResponseBody.class);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (responseBody.isSuccessful()){
+                            Log.d("cover",(String) responseBody.getData());
+                            Glide.with(UserActivity.this).load((String) responseBody.getData()).into(userCover);
+                        }else {
+                            Toast.makeText(UserActivity.this,responseBody.getMsg(), LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+            }
+        }
+    };
 }

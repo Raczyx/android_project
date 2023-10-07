@@ -230,63 +230,12 @@ public class UploadActivity extends AppCompatActivity {
     }
 
 
-    public String getRealPathFromURI(Uri uri) {
-        String filePath = "";
-        String wholeID = DocumentsContract.getDocumentId(uri);
 
-        // Split at colon, use second item in the array
-        String[] splits = wholeID.split(":");
-        String id = splits[1];
-
-        String[] column = {MediaStore.Images.Media.DATA};
-
-        // where id is equal to
-        String sel = MediaStore.Images.Media._ID + "=?";
-
-        Cursor cursor = getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                column, sel, new String[]{id}, null);
-
-        int columnIndex = cursor.getColumnIndex(column[0]);
-
-        if (cursor.moveToFirst()) {
-            filePath = cursor.getString(columnIndex);
-        }
-        cursor.close();
-        return filePath;
-    }
 
 
 
 //
-    private void handleImageOnKitKat(Intent data) {
-        String imagePath = null;
-        Uri uri = data.getData();
-        if (DocumentsContract.isDocumentUri(this, uri)) {
-            // 如果是document类型的Uri，则通过document id处理
-            String docId = DocumentsContract.getDocumentId(uri);
-            if("com.android.providers.media.documents".equals(uri.getAuthority())) {
-                String id = docId.split(":")[1]; // 解析出数字格式的id
-                String selection = MediaStore.Images.Media._ID + "=" + id;
-                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
-            } else if ("com.android.providers.downloads.documents".equals(uri.
-                    getAuthority())) {
-                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public downloads"), Long.valueOf(docId));
-                        imagePath = getImagePath(contentUri, null);
 
-            }
-            Log.d("Images_type","document");
-        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            // 如果是content类型的Uri，则使用普通方式处理
-            imagePath = getImagePath(uri, null);
-            Log.d("Images_type","content");
-        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            // 如果是file类型的Uri，直接获取图片路径即可
-            imagePath = uri.getPath();
-            Log.d("Images_type","file");
-        }
-        Log.d("Images_path",imagePath!=null?imagePath:"null"); // 根据图片路径显示图片
-    }
 //
     @SuppressLint("Range")
     private String getImagePath(Uri uri, String selection) {
